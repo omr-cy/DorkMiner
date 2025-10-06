@@ -61,7 +61,7 @@ class Droker:
             if len(url) > len(self.domain) and self.domain in url:
                 matches_set.add(url)
 
-        return sorted(matches_set)
+        return matches_set
 
 
     async def run(self):
@@ -76,13 +76,16 @@ class Droker:
 
             results = self._parse_src(page)
 
-            self.hosts.update(results)
-
             res_len = len(results)
 
             if res_len == 0 or res_len == self.max_results:
-
                 dork_loop = False
+            
+            elif results.issubset(self.hosts):
+                dork_loop = False
+
+            else:
+                self.hosts.update(results)
 
         return self.hosts
 
