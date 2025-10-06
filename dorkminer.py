@@ -1,5 +1,5 @@
 import asyncio
-from playwright.sync_api import sync_playwright, Browser
+from playwright.async_api import async_playwright
 import re
 from bs4 import BeautifulSoup
 
@@ -13,7 +13,7 @@ MSG = {
 }
 
 class Droker:
-    def __init__(self, browser:Browser, domain:str, max_results:int=500):
+    def __init__(self, browser, domain:str, max_results:int=500):
         self.searcher = None
         self.browser = browser
         self.domain = domain
@@ -21,21 +21,17 @@ class Droker:
         self.hosts = set()
 
 
-    def _fetch_page(self, url):
-        context = self.browser.new_context(
-            user_agent=(
-                "Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"
-            ),
+    async def _fetch_page(self, url):
+        context = await self.browser.new_context(
+            user_agent=("Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"),
             viewport={"width": 1366, "height": 768},
-            extra_http_headers={
-                "Accept-Language": "en-US;q=0.8,en;q=0.7",
-            },
+            extra_http_headers={"Accept-Language": "en-US;q=0.8,en;q=0.7",},
             java_script_enabled=True
-            )
-        page = context.new_page()
-        page.goto(url, wait_until="load", timeout=15000)
-        content = page.content()
-        page.close()
+        )
+        page = await context.new_page()
+        await page.goto(url, wait_until="load", timeout=15000)
+        content = await page.content()
+        await page.close()
         return content
 
 
@@ -68,7 +64,7 @@ class Droker:
         return sorted(matches_set)
 
 
-    def run(self):
+    async def run(self):
 
         dork_loop = True
 
@@ -76,7 +72,7 @@ class Droker:
 
             url = f"{self.dork_url} -{' -'.join(self.hosts)}" if self.hosts else self.dork_url
 
-            page = self._fetch_page(url)
+            page = await self._fetch_page(url)
 
             results = self._parse_src(page)
 
@@ -93,12 +89,14 @@ class Droker:
 # ----------------------------------------------------------------------------------------------------------------
 
 class DuckDuckGo(Droker):
+    """duckduckgo search engine implementation"""
     def __init__(self, browser, domain, max_results):
         super().__init__(browser, domain, max_results)
         self.searcher = "https://www.duckduckgo.com/search?q="
         self.dork_url = f"{self.searcher}site:{self.domain}"
 
 class Yahoo(Droker):
+    """Yahoo search engine implementation"""
     def __init__(self, browser, domain, max_results):
         super().__init__(browser, domain, max_results)
         self.searcher = "https://search.yahoo.com/search?p="
@@ -106,103 +104,97 @@ class Yahoo(Droker):
 
 
 
-# ----------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------
 
 
-# if __name__ == "__main__":
-#     from concurrent.futures import ThreadPoolExecutor as TreadX
-#     from concurrent.futures import as_completed
-#     from pathlib import Path
-#     import argparse
-
-#     # ----------------- [ CLI ] ------------------ #
-
-#     parser = argparse.ArgumentParser(
-#         description="DrokMiner - Using Dorks For duckduckgo, yahoo"
-#     )
-
-#     parser.add_argument(
-#         "-d", "--domain",
-#         required=True,
-#         help="Target Domain"
-#     )
-#     parser.add_argument(
-#         "-s", "--searhers",
-#         required=True,
-#         help="Searhers ( duck / dcukduckgo,  yahoo )"
-#     )
-#     parser.add_argument(
-#         "-m", "--max",
-#         help="Max Results (integer)",
-#         default='500'
-#     )
-#     parser.add_argument(
-#         "-o", "--output",
-#         help="Output file"
-#     )
-#     args = parser.parse_args()
-#     # -------
-
-#     all_hosts = set()
-
-#     with sync_playwright() as p:
-#         domain:str = args.domain
-#         max_results:int = args.max
-#         searhers:list = [searher.strip().lower() for searher in args.searhers.split(",")]
-
-#         browser = p.firefox.launch(headless=False)
-#         threads = []
-
-#         with ThreadX(max_workers=2) as TX:  
-#             if 'duck' in searhers or 'duckduckgo' in searhers:
-#                 threads.append(TX.submit(DuckDuckGo, browser, domain, max_results))
-
-#             if 'yahoo' in searhers:
-#                 threads.append(TX.submit(Yahoo, browser, domain, max_results)) 
-            
-#             for thread in as_completed(threads):
-#                 try:
-#                     hosts = thread.result() or set()
-#                     all_hosts.update(hosts)
-#                 except Exception as e:
-#                     print("Worker raised:", e)
-
-#         browser.close()
-
-#     if args.output:
-#         ...
-
-
-# ------- TEST -------
-
-if __name__ == "__main__":
-    from concurrent.futures import ThreadPoolExecutor as ThreadX
-    from concurrent.futures import as_completed
+async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int = 500):
 
     all_hosts = set()
 
-    with sync_playwright() as p:
-        domain:str = 'instagram.com'
-        max_results:int = 500
-        searhers:list = ['duck', 'yahoo']
+    async with async_playwright() as p:
 
-        browser = p.firefox.launch(headless=False)
-        threads = []
+        browser = await p.firefox.launch(headless=False)
 
-        with ThreadX(max_workers=2) as TX:  
-            if 'duck' in searhers or 'duckduckgo' in searhers:
-                threads.append(TX.submit(lambda: DuckDuckGo(browser, domain, max_results).run()))
-
-            if 'yahoo' in searhers:
-                threads.append(TX.submit(lambda: DuckDuckGo(browser, domain, max_results).run())) 
+        jobs = []
+        
+        if 'duck' in searchers or 'duckduckgo' in searchers:
+            duckduckgo = DuckDuckGo(browser, domain, max_results)
+            jobs.append(duckduckgo.run())
             
-            for thread in as_completed(threads):
-                try:
-                    hosts = thread.result() or set()
-                    all_hosts.update(hosts)
-                except Exception as e:
-                    print("Worker raised:", e)
+        if 'yahoo' in searchers:
+            yahoo = Yahoo(browser, domain, max_results)
+            jobs.append(yahoo.run())
+        
+        # Execute all jobs concurrently
+        results = await asyncio.gather(*jobs, return_exceptions=True)
+        
+        # Process results
+        for result in results:
+            if isinstance(result, Exception):
+                print(f"{MSG['ERROR']} Search error: {result}")
+            else:
+                all_hosts.update(result)
 
-        browser.close()
+        await browser.close()
 
-    print(sorted(all_hosts))
+    return sorted(all_hosts)
+
+
+# ----------------------------------------------------------------------------------------------------------------
+
+# ----------------- [ CLI ] ------------------ #
+
+if __name__ == "__main__":
+    from pathlib import Path
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="DrokMiner - Using Dorks For duckduckgo, yahoo"
+    )
+
+    parser.add_argument(
+        "-d", "--domain",
+        required=True,
+        help="Target Domain"
+    )
+    parser.add_argument(
+        "-s", "--searchers",
+        required=True,
+        help="Searhers (duck / dcukduckgo, yahoo)"
+    )
+    parser.add_argument(
+        "-m", "--max",
+        help="Max Results (integer)",
+        default='500'
+    )
+    parser.add_argument(
+        "-o", "--outfile",
+        help="Path / to / OutputFile",
+        default='./dorkminer-results.txt'
+    )
+    cli = parser.parse_args()
+
+    domain = cli.domain
+    max_results = cli.max
+    searchers = [searher.strip().lower() for searher in cli.searchers.split(",")]
+
+    # Run The Main 
+    all_hosts = asyncio.run(main(domain, searchers, max_results))
+
+    # Save Output Hosts in File
+
+    outfile = Path(cli.outfile)
+
+    if str(outfile).strip() not in ["", "."]:
+        with outfile.open("w", encoding='utf-8'):
+            outfile.write_text("\n".join(all_hosts))
+
+    else:
+        for host in all_hosts:
+            print(host)
+
+        check = input("Save Results? Y,n: ").strip()
+
+        if check in ["", "Y", "y"]:
+            with file.open("w", encoding='utf-8'):
+                file.write_text("\n".join(all_hosts))
