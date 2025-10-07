@@ -50,6 +50,8 @@ Options:
 
 - `-o / --outfile` : output file (default prints to stdout and asks to save)
 
+- `-b / --browser` : browser (default 'chromium')
+
 Save results directly:
 ```bash
 python dorkminer.py -d example.com -s duck,yahoo -m 500 -o ./results.txt
@@ -131,13 +133,17 @@ python -m playwright install
 python dorkminer.py -d example.com -s duck,yahoo -m 200
 ```
 
-خيارات:
+خيارات العمل:
 - `-d / --domain` : النطاق الهدف (مطلوب)  
+
 - `-s / --searchers` : محركات البحث مفصولة بفاصلة (`duck`, `yahoo`, `naver`, ...). مثال: `duck,yahoo`  
+
 - `-m / --max` : الحد الأقصى للنتائج (افتراضي 500)  
+
 - `-o / --outfile` : ملف الإخراج (افتراضي يطبع ثم يسألك حفظ)
 
-حفظ النتائج مباشرة:
+- `-b / --browser` : لأختيار المتصفح (إفتراضي 'chromium')
+
 ```bash
 python dorkminer.py -d example.com -s duck,yahoo -m 500 -o ./results.txt
 ```
