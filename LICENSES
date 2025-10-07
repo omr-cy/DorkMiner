@@ -1,20 +1,3 @@
-Released under the GPL v2.0 and MIT License.
-
-If you did not receive a copy of the GPL, you can find it at:
-http://www.gnu.org/
-
-Copyright © 2025 Omar Ashraf, known as omr
-
-This project is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, version 2 of the License.
-
-This project is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the GNU General Public License for more details.
-
--------------------------------------------------------------------
 MIT License
 
 Permission is hereby granted, free of charge, to any person obtaining
@@ -36,24 +19,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ===================================================================
-
-مرخص بموجب رخصة GPL الإصدار 2.0 ورخصة MIT.
-
-إذا لم تتلقَ نسخة من رخصة GPL، يمكنك العثور عليها على:
-http://www.gnu.org/
-
-حقوق النشر © 2025 عمر أشرف، المعروف باسم omr
-
-هذا المشروع هو برنامج حر؛ يمكنك إعادة توزيعه و/أو تعديله
-وفقًا لشروط رخصة جنو العمومية العامة كما نشرتها مؤسسة البرمجيات الحرة،
-الإصدار الثاني من الرخصة.
-
-يتم توزيع هذا المشروع على أمل أن يكون مفيدًا،
-ولكن **دون أي ضمان**؛ حتى دون الضمان الضمني لقابلية التسويق
-أو الملاءمة لغرض معين. راجع رخصة جنو العمومية العامة
-لمزيد من التفاصيل.
-
--------------------------------------------------------------------
 رخصة MIT
 
 يُمنح الإذن، مجانًا، لأي شخص يحصل على نسخة من هذا البرنامج

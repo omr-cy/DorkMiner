@@ -5,18 +5,10 @@ import re
 from bs4 import BeautifulSoup
 from pathlib import Path
 import subprocess
+from _config import MSG, BANNER
 
 
 DIR = Path(__file__).parent.resolve()
-
-MSG = {
-    'INIT'  : f"{'\033[95m'}[INIT]{'\033[0m'}",    # Purple
-    'INFO'  : f"{'\033[94m'}[INFO]{'\033[0m'}",    # Blue
-    'SUCC'  : f"{'\033[92m'}[SCSS]{'\033[0m'}",    # Green
-    'DONE'  : f"{'\033[92m'}[DONE]{'\033[0m'}",    # Green
-    'WARN'  : f"{'\033[93m'}[WARN]{'\033[0m'}",    # Yellow
-    '!ERR'  : f"{'\033[91m'}[!ERR]{'\033[0m'}",    # Red
-}
 
 # ----------------------------------------------------------------------------------------------------------------
 
@@ -143,7 +135,9 @@ class Naver(Droker): # CO
 
 # -----------------------------------------------------------------------------------------------------------------
 
-async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int = 500, browser:str = 'chromium', view:bool = False):
+async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int = 500, browser:str = 'chromium', view:bool = False, silent:str = False):
+
+    print(BANNER) if not silent else ...
 
     all_hosts = set()
 
@@ -259,6 +253,11 @@ if __name__ == "__main__":
         help="View Browser Proces",
         action="store_true"
     )
+    parser.add_argument(
+        "--silent",
+        help="View Browser Proces",
+        action="store_true"
+    )
     cli = parser.parse_args()
 
     # Run The Main 
@@ -268,6 +267,7 @@ if __name__ == "__main__":
         max_results = cli.max,
         browser=cli.browser,
         view=cli.view,
+        silent=cli.silent,
     ))
 
     # Save Output Hosts in File
@@ -279,7 +279,7 @@ if __name__ == "__main__":
 
     else:
         outfile = Path("dorkminer-results.txt")
-        outfile.touch(exist_ok=True)
+        # outfile.touch(exist_ok=True)
 
         for host in all_hosts:
             print(host)
@@ -287,8 +287,8 @@ if __name__ == "__main__":
         check = input("Save Results? (Y,n): ").strip()
 
         if check in ["", "Y", "y"]:
-            with outfile.open("w", encoding='utf-8') as file:
-                file.writelines(all_hosts)
+            with outfile.open("w", encoding='utf-8'):
+                outfile.write_text("\n".join(all_hosts))
 
 
 
