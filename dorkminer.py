@@ -160,7 +160,7 @@ async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int =
 
     async with async_playwright() as p:
         browser = await eval(f'p.{browser}').launch_persistent_context(
-            headless = False,
+            headless = True,
             user_agent = ("Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"),
             viewport = {"width": 1366, "height": 768},
             extra_http_headers = {"Accept-Language": "en-US;q=0.8,en;q=0.7",},
