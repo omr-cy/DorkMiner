@@ -5,7 +5,6 @@ import re
 from bs4 import BeautifulSoup
 from pathlib import Path
 import subprocess
-from datetime import datetime
 
 BANNER = (rf"""
     {'\033[95m'}
@@ -25,6 +24,7 @@ MSG = {
     'DONE'  : f"{'\033[92m'}[DONE]{'\033[0m'}",    # Green
     'WARN'  : f"{'\033[93m'}[WARN]{'\033[0m'}",    # Yellow
     '!ERR'  : f"{'\033[91m'}[!ERR]{'\033[0m'}",    # Red
+    'TAP4'  : "    "
 }
 
 DIR = Path(__file__).parent.resolve()
@@ -32,11 +32,14 @@ DIR = Path(__file__).parent.resolve()
 # ----------------------------------------------------------------------------------------------------------------
 
 class Droker:
-    def __init__(self, browser, domain:str, max_results:int=500):
+    name = 'Dorker'
+
+    def __init__(self, browser, domain:str, max_results:int, silent:bool):
         self.searcher = None
         self.browser = browser
         self.domain = domain
         self.max_results = max_results
+        self.silent = silent
         self.hosts = set()
 
 
@@ -79,6 +82,9 @@ class Droker:
 
     async def run(self):
 
+        if not self.silent:
+            print(MSG['TAP4'] + f"{MSG['INFO']} - Dorking: {self.name}")
+
         dork_loop = True
 
         while dork_loop:
@@ -104,52 +110,51 @@ class Droker:
 
 class DuckDuckGo(Droker):
     """duckduckgo search engine implementation"""
-    def __init__(self, browser, domain, max_results):
-        super().__init__(browser, domain, max_results)
+    name = "DuckDuckGo"
+    def __init__(self, browser, domain, max_results, silent):
+        super().__init__(browser, domain, max_results, silent)
         self.searcher = "https://www.duckduckgo.com/search?q="
         self.dork_url = f"{self.searcher}site:{self.domain}"
 
 class Yahoo(Droker):
     """Yahoo search engine implementation"""
-    def __init__(self, browser, domain, max_results):
-        super().__init__(browser, domain, max_results)
+    name = "Yahoo"
+    def __init__(self, browser, domain, max_results, silent):
+        super().__init__(browser, domain, max_results, silent)
         self.searcher = "https://search.yahoo.com/search?p="
         self.dork_url = f"{self.searcher}site:{self.domain}"
 
 class Yendix(Droker): # RS
     """Yendix search engine implementation"""
-    def __init__(self, browser, domain, max_results):
-        super().__init__(browser, domain, max_results)
+    name = "Yendix"
+    def __init__(self, browser, domain, max_results, silent):
+        super().__init__(browser, domain, max_results, silent)
         self.searcher = "https://search.yahoo.com/search?p="
         self.dork_url = f"{self.searcher}site:{self.domain}"
 
 class YahooJP(Droker): # JO
     """Yahoo Japan search engine implementation"""
-    def __init__(self, browser, domain, max_results):
-        super().__init__(browser, domain, max_results)
+    name = "Yahoo Japan"
+    def __init__(self, browser, domain, max_results, silent):
+        super().__init__(browser, domain, max_results, silent)
         self.searcher = "https://search.yahoo.co.jp/search?p="
         self.dork_url = f"{self.searcher}site:{self.domain}"
 
 class Dmenu(Droker): # JP
     """Dmenu search engine implementation"""
-    def __init__(self, browser, domain, max_results):
-        super().__init__(browser, domain, max_results)
+    name = "Dmenu-GOO"
+    def __init__(self, browser, domain, max_results, silent):
+        super().__init__(browser, domain, max_results, silent)
         self.searcher = "https://service.smt.docomo.ne.jp/portal/search/web/result.html?q="
         self.dork_url = f"{self.searcher}site:{self.domain}"
 
 class Naver(Droker): # CO
     """Naver search engine implementation"""
-    def __init__(self, browser, domain, max_results):
-        super().__init__(browser, domain, max_results)
+    name = "Naver"
+    def __init__(self, browser, domain, max_results, silent):
+        super().__init__(browser, domain, max_results, silent)
         self.searcher = "https://search.naver.com/search.naver?query="
         self.dork_url = f"{self.searcher}site:{self.domain}"
-
-# class Google(Droker): # CO
-#     """Naver search engine implementation"""
-#     def __init__(self, browser, domain, max_results):
-#         super().__init__(browser, domain, max_results)
-#         self.searcher = "https://www.google.com/search?q="
-#         self.dork_url = f"{self.searcher}site:{self.domain}"
 
 
 # -----------------------------------------------------------------------------------------------------------------
@@ -196,52 +201,54 @@ async def main(
         jobs = []
         
         if '_duck_' in searchers or '_duckduckgo_' in searchers or "_all_" in searchers:
-            duck_hosts = DuckDuckGo(browser, domain, max_results)
+            duck_hosts = DuckDuckGo(browser, domain, max_results, silent)
             jobs.append(duck_hosts.run())
             
         if '_yahoo_' in searchers or "_all_" in searchers: # OR ALL
-            yahoo_hosts = Yahoo(browser, domain, max_results)
+            yahoo_hosts = Yahoo(browser, domain, max_results, silent)
             jobs.append(yahoo_hosts.run())
 
         if '_yendix_' in searchers or "_all_" in searchers:
-            yendix_hosts = Yendix(browser, domain, max_results)
+            yendix_hosts = Yendix(browser, domain, max_results, silent)
             jobs.append(yendix_hosts.run())
 
         if '_yahoojp_' in searchers or "_all_" in searchers:
-            yahoojp_hosts = YahooJP(browser, domain, max_results)
+            yahoojp_hosts = YahooJP(browser, domain, max_results, silent)
             jobs.append(yahoojp_hosts.run())
 
         if '_dmenu_' in searchers or "_all_" in searchers:
-            dmenu_hosts = Dmenu(browser, domain, max_results)
+            dmenu_hosts = Dmenu(browser, domain, max_results, silent)
             jobs.append(dmenu_hosts.run())
 
         if '_naver_' in searchers or "_all_" in searchers:
-            naver_hosts = Naver(browser, domain, max_results)
+            naver_hosts = Naver(browser, domain, max_results, silent)
             jobs.append(naver_hosts.run())
 
-        # if '_google_' in searchers or "_all_" in searchers:
-        #     google_hosts = Google(browser, domain, max_results)
-        #     jobs.append(google_hosts.run())
 
-        
         # Execute all jobs concurrently
         results = await asyncio.gather(*jobs, return_exceptions=True, )
-        
+
+        # Just For More Readability
+        print(MSG["TAP4"] + "\n"+" |--------------------------------------------|"+"\n")
+
         # Process results
         for result in results:
             if isinstance(result, Exception):
-                print(f"{MSG['!ERR']} Search error: {result}")
+                print(MSG["TAP4"] + f"{MSG['!ERR']} Search error: {result}")
             else:
-                all_hosts.update(result)
+                # Print Only New Hosts in Stduot
+                for host in result:
+                    if not silent and host not in all_hosts:
+                        print(MSG['TAP4'] + f"{'\033[92m'}[+]{'\033[0m'}" + " - " + host)
+                        # Save New Results
+                        all_hosts.add(host)
+
 
         await browser.close()
 
     subprocess.run(f"rm -rf {browser_temp}", shell=True)
 
     all_hosts = sorted(all_hosts)
-
-    # Print Hosts in Stduot
-    [ print(" - " + host) for host in all_hosts if not silent ]
 
     # Save Output Hosts in File
     if outfile:
@@ -285,17 +292,18 @@ def cli():
         silent=args.silent,
     ))
 
-if __name__ == "__main__":
-    cli()
-
-
-# ----------------- [ TEST ] ----------------- #
-
 # if __name__ == "__main__":
-#     all_hosts = asyncio.run(main(
-#         domain = "instagram.com",
-#         searchers = ['_all_'],
-#         max_results = 500
-#     ))
-#     for h in all_hosts:
-#         print(h)
+#     cli()
+
+
+# ----------------- [ TEST ] -----------------
+
+if __name__ == "__main__":
+    asyncio.run(main(
+        domain = "instagram.com",
+        searchers = ['_all_'],
+        max_results = 500,
+        # view=True,
+        # browser="firefox",
+    ))
+

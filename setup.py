@@ -24,7 +24,7 @@ setup(
     },
     long_description=description,
     long_description_content_type="text/markdown",
-    url="", 
+    url="https://github.com/omr-cy/DorkMiner", 
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
