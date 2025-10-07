@@ -136,7 +136,7 @@ async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int =
 
     async with async_playwright() as p:
 
-        browser = await p.firefox.launch_persistent_context(
+        browser = await p.chromium.launch_persistent_context(
             headless=False,
             user_agent=("Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"),
             viewport={"width": 1366, "height": 768},
@@ -189,68 +189,68 @@ async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int =
 
 # ----------------- [ CLI ] ------------------ #
 
-# if __name__ == "__main__":
-    # from pathlib import Path
-    # import argparse
+if __name__ == "__main__":
+    from pathlib import Path
+    import argparse
 
-    # # INIT CLI Args
-    # parser = argparse.ArgumentParser(
-    #     description="DrokMiner - Using Dorks For duckduckgo, yahoo"
-    # )
-    # parser.add_argument(
-    #     "-d", "--domain",
-    #     required=True,
-    #     help="Target Domain"
-    # )
-    # parser.add_argument(
-    #     "-s", "--searchers",
-    #     required=True,
-    #     help="Searhers (duck / dcukduckgo, yahoo)"
-    # )
-    # parser.add_argument(
-    #     "-m", "--max",
-    #     help="Max Results (integer)",
-    #     default='500'
-    # )
-    # parser.add_argument(
-    #     "-o", "--outfile",
-    #     help="Path / to / OutputFile",
-    #     default='./dorkminer-results.txt'
-    # )
-    # cli = parser.parse_args()
+    # INIT CLI Args
+    parser = argparse.ArgumentParser(
+        description="DrokMiner - Using Dorks For duckduckgo, yahoo"
+    )
+    parser.add_argument(
+        "-d", "--domain",
+        required=True,
+        help="Target Domain"
+    )
+    parser.add_argument(
+        "-s", "--searchers",
+        required=True,
+        help="Searhers (duck / dcukduckgo, yahoo)"
+    )
+    parser.add_argument(
+        "-m", "--max",
+        help="Max Results (integer)",
+        default='500'
+    )
+    parser.add_argument(
+        "-o", "--outfile",
+        help="Path / to / OutputFile",
+        default='./dorkminer-results.txt'
+    )
+    cli = parser.parse_args()
 
-    # # Run The Main 
-    # all_hosts = asyncio.run(main(
-    #     domain = cli.domain, 
-    #     searchers = [f"_{searher.strip().lower()}_" for searher in cli.searchers.split(",")],
-    #     max_results = cli.max
-    # ))
+    # Run The Main 
+    all_hosts = asyncio.run(main(
+        domain = cli.domain, 
+        searchers = [f"_{searher.strip().lower()}_" for searher in cli.searchers.split(",")],
+        max_results = cli.max
+    ))
 
-    # # Save Output Hosts in File
-    # outfile = Path(cli.outfile)
+    # Save Output Hosts in File
+    outfile = Path(cli.outfile)
 
-    # if str(outfile).strip() not in ["", "./dorkminer-results.txt"]:
-    #     with outfile.open("w", encoding='utf-8'):
-    #         outfile.write_text("\n".join(all_hosts))
+    if str(outfile).strip() not in ["", "./dorkminer-results.txt"]:
+        with outfile.open("w", encoding='utf-8'):
+            outfile.write_text("\n".join(all_hosts))
 
-    # else:
-    #     for host in all_hosts:
-    #         print(host)
+    else:
+        for host in all_hosts:
+            print(host)
 
-    #     check = input("Save Results? Y,n: ").strip()
+        check = input("Save Results? Y,n: ").strip()
 
-    #     if check in ["", "Y", "y"]:
-    #         with file.open("w", encoding='utf-8'):
-    #             file.write_text("\n".join(all_hosts))
+        if check in ["", "Y", "y"]:
+            with file.open("w", encoding='utf-8'):
+                file.write_text("\n".join(all_hosts))
 
 
 # ----------------- [ TEST ] ------------------ #
 
-if __name__ == "__main__":
-    all_hosts = asyncio.run(main(
-        domain = "instagram.com",
-        searchers = ['_all_'],
-        max_results = 500
-    ))
-    for h in all_hosts:
-        print(h)
+# if __name__ == "__main__":
+#     all_hosts = asyncio.run(main(
+#         domain = "instagram.com",
+#         searchers = ['_all_'],
+#         max_results = 500
+#     ))
+#     for h in all_hosts:
+#         print(h)
