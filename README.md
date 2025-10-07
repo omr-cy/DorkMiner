@@ -194,9 +194,11 @@ python3.12 -m playwright install
 ### الاستخدام الأساسي
 
 ```bash
-dorkminer dorkminer -d example.com
+dorkminer -d example.com
 
 python3.12 -m dorkminer -d example.com
+
+python3.12 dorkminer.py -d example.com
 ```
 
 ### الخيارات
