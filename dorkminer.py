@@ -5,8 +5,27 @@ import re
 from bs4 import BeautifulSoup
 from pathlib import Path
 import subprocess
-from _config import MSG, BANNER
+from datetime import datetime
 
+BANNER = (rf"""
+    {'\033[95m'}
+    ___  ____ ____ _  _      _  _ _ _  _ ____ ____ 
+    |  \ |  | |__/ |_/   __  |\/| | |\ | |___ |__/ 
+    |__/ |__| |  \ | \_      |  | | | \| |___ |  \ 
+    {'\033[0m'}
+    """ + rf"""
+    Copyright © 2025 Omar Ashraf, known as {'\033[94m'}omr{'\033[0m'}
+    Version {'\033[92m'}0.9{'\033[0m'}
+""")
+
+MSG = {
+    'INIT'  : f"{'\033[95m'}[INIT]{'\033[0m'}",    # Purple
+    'INFO'  : f"{'\033[94m'}[INFO]{'\033[0m'}",    # Blue
+    'SUCC'  : f"{'\033[92m'}[SCSS]{'\033[0m'}",    # Green
+    'DONE'  : f"{'\033[92m'}[DONE]{'\033[0m'}",    # Green
+    'WARN'  : f"{'\033[93m'}[WARN]{'\033[0m'}",    # Yellow
+    '!ERR'  : f"{'\033[91m'}[!ERR]{'\033[0m'}",    # Red
+}
 
 DIR = Path(__file__).parent.resolve()
 
@@ -135,9 +154,16 @@ class Naver(Droker): # CO
 
 # -----------------------------------------------------------------------------------------------------------------
 
-async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int = 500, browser:str = 'chromium', view:bool = False, silent:str = False):
+async def main(
+    domain:str, searchers:list = ["duck","yahoo"], outfile:str = "", max_results:int = 500, browser:str = "chromium", view:bool = False, silent:bool = False
+    ):
 
     print(BANNER) if not silent else ...
+
+    if type(searchers) == str:
+        searchers = [f"_{searher.strip().lower()}_" for searher in searchers.split(",")]
+    else:
+        ...
 
     all_hosts = set()
 
@@ -209,90 +235,61 @@ async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int =
                 all_hosts.update(result)
 
         await browser.close()
-        subprocess.run(f"rm -rf {browser_temp}", shell=True)
 
-    return sorted(all_hosts)
+    subprocess.run(f"rm -rf {browser_temp}", shell=True)
 
+    all_hosts = sorted(all_hosts)
 
-# ----------------- [ CLI ] ------------------ #
-
-if __name__ == "__main__":
-    import argparse
-
-    # INIT CLI Args
-    parser = argparse.ArgumentParser(
-        description="DrokMiner - Using Dorks For duckduckgo, yahoo"
-    )
-    parser.add_argument(
-        "-d", "--domain",
-        required=True,
-        help="Target Domain"
-    )
-    parser.add_argument(
-        "-s", "--searchers",
-        required=True,
-        help="Searhers (duck / dcukduckgo, yahoo...)",
-    )
-    parser.add_argument(
-        "-m", "--max",
-        help="Max Results (integer)",
-        default='500'
-    )
-    parser.add_argument(
-        "-o", "--outfile",
-        help="(Path/to/File) default = './dorkminer-results.txt'",
-        default="",
-    )
-    parser.add_argument(
-        "-b", "--browser",
-        help="Browser Type",
-        default='chromium'
-    )
-    parser.add_argument(
-        "-v", "--view",
-        help="View Browser Proces",
-        action="store_true"
-    )
-    parser.add_argument(
-        "--silent",
-        help="View Browser Proces",
-        action="store_true"
-    )
-    cli = parser.parse_args()
-
-    # Run The Main 
-    all_hosts = asyncio.run(main(
-        domain = cli.domain, 
-        searchers = [f"_{searher.strip().lower()}_" for searher in cli.searchers.split(",")],
-        max_results = cli.max,
-        browser=cli.browser,
-        view=cli.view,
-        silent=cli.silent,
-    ))
+    # Print Hosts in Stduot
+    [ print(" - " + host) for host in all_hosts if not silent ]
 
     # Save Output Hosts in File
-    outfile = Path(cli.outfile)
-
-    if outfile.exists() and outfile.suffix == "txt":
-        with outfile.open("w", encoding='utf-8'):
-            outfile.write_text("\n".join(all_hosts))
-
-    else:
-        outfile = Path("dorkminer-results.txt")
-        # outfile.touch(exist_ok=True)
-
-        for host in all_hosts:
-            print(host)
-
-        check = input("Save Results? (Y,n): ").strip()
-
-        if check in ["", "Y", "y"]:
+    if outfile:
+        outfile = Path(outfile)
+        if outfile.suffix == "txt":
             with outfile.open("w", encoding='utf-8'):
                 outfile.write_text("\n".join(all_hosts))
 
+    else:
+        check = input("\n" + "Save Results? (Y,n): ").strip()
+        if check in ["", "Y", "y"]:
+            outfile = Path(f"./{domain}-dorkminer-results.txt")
+            with outfile.open("w", encoding='utf-8'):
+                outfile.write_text("\n".join(all_hosts))
+
+    return all_hosts
 
 
-# ----------------- [ TEST ] ------------------ #
+# ----------------- [ CLI ] ------------------
+
+def parse_cli_args():
+    import argparse
+    parser = argparse.ArgumentParser(description="DorkMiner - Using Dorks in (duckduckgo, yahoo, ...)")
+    parser.add_argument("-d", "--domain",    required=True,  help="Target domain")
+    parser.add_argument("-s", "--searchers", required=False, default="duck,yahoo", help="Searchers (duck,yahoo,naver) or  all")
+    parser.add_argument("-m", "--max",       required=False, default=500,          help="Max results (int)")
+    parser.add_argument("-o", "--outfile",   required=False, default=None,         help="Output file path (optional)")
+    parser.add_argument("-b", "--browser",   required=False, default="chromium",   help="Browser to use (chromium|firefox)")
+    parser.add_argument("-v", "--view",      required=False, default=False,        help="View Browser Proces",   action="store_true")
+    parser.add_argument("-sl","--silent",    required=False, default=False,        help="No Banner or Messages", action="store_true",)
+    return parser.parse_args()
+
+def cli():
+    args = parse_cli_args()
+    asyncio.run(main(
+        domain=args.domain,
+        searchers=args.searchers,
+        max_results=args.max,
+        browser=args.browser,
+        view=args.view,
+        silent=args.silent,
+    ))
+
+if __name__ == "__main__":
+    cli()
+
+
+# ----------------- [ TEST ] ----------------- #
 
 # if __name__ == "__main__":
 #     all_hosts = asyncio.run(main(
