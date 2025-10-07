@@ -1,5 +1,6 @@
 import asyncio
 from playwright.async_api import async_playwright
+from fake_user_agent import aio_user_agent
 import re
 from bs4 import BeautifulSoup
 from pathlib import Path
@@ -142,17 +143,19 @@ class Naver(Droker): # CO
 
 # -----------------------------------------------------------------------------------------------------------------
 
-async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int = 500, browser='chromium'):
+async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int = 500, browser:str = 'chromium', view:bool = False):
 
     all_hosts = set()
 
     if browser == "chromium":
         # browser_path = str(DIR / '.browsers/chromium-1187/chrome-linux/chrome')
-        browser_temp = str(DIR / '.tmp/cache/chromium'
-)
+        browser_temp = str(DIR / '.tmp/cache/chromium')
+        user_agent = await aio_user_agent(browser='chrome')
+
     elif browser == "firefox":
         # browser_path = str(DIR / '.browsers/firefox-1490/firefox/firefox')
         browser_temp = str(DIR / '.tmp/cache/firefox')
+        user_agent = await aio_user_agent(browser='firefox')
 
     else:
         raise ValueError("browser must be 'chromium' or 'firefox'")
@@ -160,8 +163,9 @@ async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int =
 
     async with async_playwright() as p:
         browser = await eval(f'p.{browser}').launch_persistent_context(
-            headless = True,
-            user_agent = ("Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"),
+            headless = not view,
+            # user_agent = ("Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"),
+            user_agent = user_agent,
             viewport = {"width": 1366, "height": 768},
             extra_http_headers = {"Accept-Language": "en-US;q=0.8,en;q=0.7",},
             java_script_enabled = True,
@@ -242,13 +246,18 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-o", "--outfile",
-        help="Path / to / OutputFile",
-        default='./dorkminer-results.txt'
+        help="(Path/to/File) default = './dorkminer-results.txt'",
+        default="",
     )
     parser.add_argument(
         "-b", "--browser",
         help="Browser Type",
         default='chromium'
+    )
+    parser.add_argument(
+        "-v", "--view",
+        help="View Browser Proces",
+        action="store_true"
     )
     cli = parser.parse_args()
 
@@ -258,24 +267,29 @@ if __name__ == "__main__":
         searchers = [f"_{searher.strip().lower()}_" for searher in cli.searchers.split(",")],
         max_results = cli.max,
         browser=cli.browser,
+        view=cli.view,
     ))
 
     # Save Output Hosts in File
     outfile = Path(cli.outfile)
 
-    if str(outfile).strip() not in ["", "./dorkminer-results.txt"]:
+    if outfile.exists() and outfile.suffix == "txt":
         with outfile.open("w", encoding='utf-8'):
             outfile.write_text("\n".join(all_hosts))
 
     else:
+        outfile = Path("dorkminer-results.txt")
+        outfile.touch(exist_ok=True)
+
         for host in all_hosts:
             print(host)
 
-        check = input("Save Results? Y,n: ").strip()
+        check = input("Save Results? (Y,n): ").strip()
 
         if check in ["", "Y", "y"]:
-            with file.open("w", encoding='utf-8'):
-                file.write_text("\n".join(all_hosts))
+            with outfile.open("w", encoding='utf-8') as file:
+                file.writelines(all_hosts)
+
 
 
 # ----------------- [ TEST ] ------------------ #

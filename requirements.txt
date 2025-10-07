@@ -1,3 +1,4 @@
 playwright=1.55.0
+fake-user-agent-2.3.9
 beautifulsoup4=4.10.0
 lxml=6.0.1

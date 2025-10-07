@@ -50,7 +50,9 @@ Options:
 
 - `-o / --outfile` : output file (default prints to stdout and asks to save)
 
-- `-b / --browser` : browser (default 'chromium')
+- `-b / --browser` : Browser type (default 'chromium')
+
+- `-v / --view` : View Browser Proces (default 'False')
 
 Save results directly:
 ```bash
@@ -143,6 +145,8 @@ python dorkminer.py -d example.com -s duck,yahoo -m 200
 - `-o / --outfile` : ملف الإخراج (افتراضي يطبع ثم يسألك حفظ)
 
 - `-b / --browser` : لأختيار المتصفح (إفتراضي 'chromium')
+
+- `-v / --view` : مطالعة عمليات المتصفح (الإفتراضي 'False - موقوف')
 
 ```bash
 python dorkminer.py -d example.com -s duck,yahoo -m 500 -o ./results.txt
