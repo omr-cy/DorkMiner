@@ -2,6 +2,11 @@ import asyncio
 from playwright.async_api import async_playwright
 import re
 from bs4 import BeautifulSoup
+from pathlib import Path
+import subprocess
+
+
+DIR = Path(__file__).parent.resolve()
 
 MSG = {
     'INIT'  : f"{'\033[95m'}[INIT]{'\033[0m'}",    # Purple
@@ -127,22 +132,41 @@ class Naver(Droker): # CO
         self.searcher = "https://search.naver.com/search.naver?query="
         self.dork_url = f"{self.searcher}site:{self.domain}"
 
+# class Google(Droker): # CO
+#     """Naver search engine implementation"""
+#     def __init__(self, browser, domain, max_results):
+#         super().__init__(browser, domain, max_results)
+#         self.searcher = "https://www.google.com/search?q="
+#         self.dork_url = f"{self.searcher}site:{self.domain}"
+
 
 # -----------------------------------------------------------------------------------------------------------------
 
-async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int = 500):
+async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int = 500, browser='chromium'):
 
     all_hosts = set()
 
-    async with async_playwright() as p:
+    if browser == "chromium":
+        # browser_path = str(DIR / '.browsers/chromium-1187/chrome-linux/chrome')
+        browser_temp = str(DIR / '.tmp/cache/chromium'
+)
+    elif browser == "firefox":
+        # browser_path = str(DIR / '.browsers/firefox-1490/firefox/firefox')
+        browser_temp = str(DIR / '.tmp/cache/firefox')
 
-        browser = await p.chromium.launch_persistent_context(
-            headless=False,
-            user_agent=("Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"),
-            viewport={"width": 1366, "height": 768},
-            extra_http_headers={"Accept-Language": "en-US;q=0.8,en;q=0.7",},
-            java_script_enabled=True,
-            user_data_dir='/tmp/firefox-profile'
+    else:
+        raise ValueError("browser must be 'chromium' or 'firefox'")
+
+
+    async with async_playwright() as p:
+        browser = await eval(f'p.{browser}').launch_persistent_context(
+            headless = False,
+            user_agent = ("Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"),
+            viewport = {"width": 1366, "height": 768},
+            extra_http_headers = {"Accept-Language": "en-US;q=0.8,en;q=0.7",},
+            java_script_enabled = True,
+            user_data_dir = browser_temp,
+            # executable_path= browser_path
         )
 
         jobs = []
@@ -171,6 +195,10 @@ async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int =
             naver_hosts = Naver(browser, domain, max_results)
             jobs.append(naver_hosts.run())
 
+        # if '_google_' in searchers or "_all_" in searchers:
+        #     google_hosts = Google(browser, domain, max_results)
+        #     jobs.append(google_hosts.run())
+
         
         # Execute all jobs concurrently
         results = await asyncio.gather(*jobs, return_exceptions=True, )
@@ -183,6 +211,7 @@ async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int =
                 all_hosts.update(result)
 
         await browser.close()
+        subprocess.run(f"rm -rf {browser_temp}", shell=True)
 
     return sorted(all_hosts)
 
@@ -190,7 +219,6 @@ async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int =
 # ----------------- [ CLI ] ------------------ #
 
 if __name__ == "__main__":
-    from pathlib import Path
     import argparse
 
     # INIT CLI Args
@@ -205,7 +233,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s", "--searchers",
         required=True,
-        help="Searhers (duck / dcukduckgo, yahoo)"
+        help="Searhers (duck / dcukduckgo, yahoo...)",
     )
     parser.add_argument(
         "-m", "--max",
@@ -217,13 +245,19 @@ if __name__ == "__main__":
         help="Path / to / OutputFile",
         default='./dorkminer-results.txt'
     )
+    parser.add_argument(
+        "-b", "--browser",
+        help="Browser Type",
+        default='chromium'
+    )
     cli = parser.parse_args()
 
     # Run The Main 
     all_hosts = asyncio.run(main(
         domain = cli.domain, 
         searchers = [f"_{searher.strip().lower()}_" for searher in cli.searchers.split(",")],
-        max_results = cli.max
+        max_results = cli.max,
+        browser=cli.browser,
     ))
 
     # Save Output Hosts in File
