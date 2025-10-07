@@ -4,13 +4,15 @@ import re
 from bs4 import BeautifulSoup
 
 MSG = {
-    'INIT'    : f"{'\033[95m'}[INIT]{'\033[0m'}",    # Purple
-    'INFO'    : f"{'\033[94m'}[INFO]{'\033[0m'}",      # Blue
-    'SUCCESS' : f"{'\033[92m'}[SCSS]{'\033[0m'}",      # Green
-    'DONE'    : f"{'\033[92m'}[DONE]{'\033[0m'}",      # Green
-    'WARNING' : f"{'\033[93m'}[WARN]{'\033[0m'}",      # Yellow
-    'ERROR'   : f"{'\033[91m'}[!ERR]{'\033[0m'}",      # Red
+    'INIT'  : f"{'\033[95m'}[INIT]{'\033[0m'}",    # Purple
+    'INFO'  : f"{'\033[94m'}[INFO]{'\033[0m'}",    # Blue
+    'SUCC'  : f"{'\033[92m'}[SCSS]{'\033[0m'}",    # Green
+    'DONE'  : f"{'\033[92m'}[DONE]{'\033[0m'}",    # Green
+    'WARN'  : f"{'\033[93m'}[WARN]{'\033[0m'}",    # Yellow
+    '!ERR'  : f"{'\033[91m'}[!ERR]{'\033[0m'}",    # Red
 }
+
+# ----------------------------------------------------------------------------------------------------------------
 
 class Droker:
     def __init__(self, browser, domain:str, max_results:int=500):
@@ -22,14 +24,8 @@ class Droker:
 
 
     async def _fetch_page(self, url):
-        context = await self.browser.new_context(
-            user_agent=("Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"),
-            viewport={"width": 1366, "height": 768},
-            extra_http_headers={"Accept-Language": "en-US;q=0.8,en;q=0.7",},
-            java_script_enabled=True
-        )
-        page = await context.new_page()
-        await page.goto(url, wait_until="load", timeout=15000)
+        page = await self.browser.new_page()
+        await page.goto(url, wait_until="load", timeout=70000) 
         content = await page.content()
         await page.close()
         return content
@@ -38,7 +34,7 @@ class Droker:
     def _parse_src(self, src):
 
         if not src:
-            print(f"{MSG['ERROR']} Error Page is empty, return []")
+            print(f"{MSG['!ERR']} Error Page is empty, return []")
             return []
 
         soup = BeautifulSoup(src, "lxml")
@@ -89,8 +85,6 @@ class Droker:
 
         return self.hosts
 
-# ----------------------------------------------------------------------------------------------------------------
-
 class DuckDuckGo(Droker):
     """duckduckgo search engine implementation"""
     def __init__(self, browser, domain, max_results):
@@ -105,10 +99,36 @@ class Yahoo(Droker):
         self.searcher = "https://search.yahoo.com/search?p="
         self.dork_url = f"{self.searcher}site:{self.domain}"
 
+class Yendix(Droker): # RS
+    """Yendix search engine implementation"""
+    def __init__(self, browser, domain, max_results):
+        super().__init__(browser, domain, max_results)
+        self.searcher = "https://search.yahoo.com/search?p="
+        self.dork_url = f"{self.searcher}site:{self.domain}"
+
+class YahooJP(Droker): # JO
+    """Yahoo Japan search engine implementation"""
+    def __init__(self, browser, domain, max_results):
+        super().__init__(browser, domain, max_results)
+        self.searcher = "https://search.yahoo.co.jp/search?p="
+        self.dork_url = f"{self.searcher}site:{self.domain}"
+
+class Dmenu(Droker): # JP
+    """Dmenu search engine implementation"""
+    def __init__(self, browser, domain, max_results):
+        super().__init__(browser, domain, max_results)
+        self.searcher = "https://service.smt.docomo.ne.jp/portal/search/web/result.html?q="
+        self.dork_url = f"{self.searcher}site:{self.domain}"
+
+class Naver(Droker): # CO
+    """Naver search engine implementation"""
+    def __init__(self, browser, domain, max_results):
+        super().__init__(browser, domain, max_results)
+        self.searcher = "https://search.naver.com/search.naver?query="
+        self.dork_url = f"{self.searcher}site:{self.domain}"
 
 
 # -----------------------------------------------------------------------------------------------------------------
-
 
 async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int = 500):
 
@@ -116,25 +136,49 @@ async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int =
 
     async with async_playwright() as p:
 
-        browser = await p.firefox.launch(headless=False)
+        browser = await p.firefox.launch_persistent_context(
+            headless=False,
+            user_agent=("Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"),
+            viewport={"width": 1366, "height": 768},
+            extra_http_headers={"Accept-Language": "en-US;q=0.8,en;q=0.7",},
+            java_script_enabled=True,
+            user_data_dir='/tmp/firefox-profile'
+        )
 
         jobs = []
         
-        if 'duck' in searchers or 'duckduckgo' in searchers:
-            duckduckgo = DuckDuckGo(browser, domain, max_results)
-            jobs.append(duckduckgo.run())
+        if '_duck_' in searchers or '_duckduckgo_' in searchers or "_all_" in searchers:
+            duck_hosts = DuckDuckGo(browser, domain, max_results)
+            jobs.append(duck_hosts.run())
             
-        if 'yahoo' in searchers:
-            yahoo = Yahoo(browser, domain, max_results)
-            jobs.append(yahoo.run())
+        if '_yahoo_' in searchers or "_all_" in searchers: # OR ALL
+            yahoo_hosts = Yahoo(browser, domain, max_results)
+            jobs.append(yahoo_hosts.run())
+
+        if '_yendix_' in searchers or "_all_" in searchers:
+            yendix_hosts = Yendix(browser, domain, max_results)
+            jobs.append(yendix_hosts.run())
+
+        if '_yahoojp_' in searchers or "_all_" in searchers:
+            yahoojp_hosts = YahooJP(browser, domain, max_results)
+            jobs.append(yahoojp_hosts.run())
+
+        if '_dmenu_' in searchers or "_all_" in searchers:
+            dmenu_hosts = Dmenu(browser, domain, max_results)
+            jobs.append(dmenu_hosts.run())
+
+        if '_naver_' in searchers or "_all_" in searchers:
+            naver_hosts = Naver(browser, domain, max_results)
+            jobs.append(naver_hosts.run())
+
         
         # Execute all jobs concurrently
-        results = await asyncio.gather(*jobs, return_exceptions=True)
+        results = await asyncio.gather(*jobs, return_exceptions=True, )
         
         # Process results
         for result in results:
             if isinstance(result, Exception):
-                print(f"{MSG['ERROR']} Search error: {result}")
+                print(f"{MSG['!ERR']} Search error: {result}")
             else:
                 all_hosts.update(result)
 
@@ -143,61 +187,70 @@ async def main(domain:str, searchers:list = ['duck', 'yahoo'], max_results:int =
     return sorted(all_hosts)
 
 
-# ----------------------------------------------------------------------------------------------------------------
-
 # ----------------- [ CLI ] ------------------ #
 
+# if __name__ == "__main__":
+    # from pathlib import Path
+    # import argparse
+
+    # # INIT CLI Args
+    # parser = argparse.ArgumentParser(
+    #     description="DrokMiner - Using Dorks For duckduckgo, yahoo"
+    # )
+    # parser.add_argument(
+    #     "-d", "--domain",
+    #     required=True,
+    #     help="Target Domain"
+    # )
+    # parser.add_argument(
+    #     "-s", "--searchers",
+    #     required=True,
+    #     help="Searhers (duck / dcukduckgo, yahoo)"
+    # )
+    # parser.add_argument(
+    #     "-m", "--max",
+    #     help="Max Results (integer)",
+    #     default='500'
+    # )
+    # parser.add_argument(
+    #     "-o", "--outfile",
+    #     help="Path / to / OutputFile",
+    #     default='./dorkminer-results.txt'
+    # )
+    # cli = parser.parse_args()
+
+    # # Run The Main 
+    # all_hosts = asyncio.run(main(
+    #     domain = cli.domain, 
+    #     searchers = [f"_{searher.strip().lower()}_" for searher in cli.searchers.split(",")],
+    #     max_results = cli.max
+    # ))
+
+    # # Save Output Hosts in File
+    # outfile = Path(cli.outfile)
+
+    # if str(outfile).strip() not in ["", "./dorkminer-results.txt"]:
+    #     with outfile.open("w", encoding='utf-8'):
+    #         outfile.write_text("\n".join(all_hosts))
+
+    # else:
+    #     for host in all_hosts:
+    #         print(host)
+
+    #     check = input("Save Results? Y,n: ").strip()
+
+    #     if check in ["", "Y", "y"]:
+    #         with file.open("w", encoding='utf-8'):
+    #             file.write_text("\n".join(all_hosts))
+
+
+# ----------------- [ TEST ] ------------------ #
+
 if __name__ == "__main__":
-    from pathlib import Path
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description="DrokMiner - Using Dorks For duckduckgo, yahoo"
-    )
-
-    parser.add_argument(
-        "-d", "--domain",
-        required=True,
-        help="Target Domain"
-    )
-    parser.add_argument(
-        "-s", "--searchers",
-        required=True,
-        help="Searhers (duck / dcukduckgo, yahoo)"
-    )
-    parser.add_argument(
-        "-m", "--max",
-        help="Max Results (integer)",
-        default='500'
-    )
-    parser.add_argument(
-        "-o", "--outfile",
-        help="Path / to / OutputFile",
-        default='./dorkminer-results.txt'
-    )
-    cli = parser.parse_args()
-
-    domain = cli.domain
-    max_results = cli.max
-    searchers = [searher.strip().lower() for searher in cli.searchers.split(",")]
-
-    # Run The Main 
-    all_hosts = asyncio.run(main(domain, searchers, max_results))
-
-    # Save Output Hosts in File
-
-    outfile = Path(cli.outfile)
-
-    if str(outfile).strip() not in ["", "."]:
-        with outfile.open("w", encoding='utf-8'):
-            outfile.write_text("\n".join(all_hosts))
-
-    else:
-        for host in all_hosts:
-            print(host)
-
-        check = input("Save Results? Y,n: ").strip()
-
-        if check in ["", "Y", "y"]:
-            with file.open("w", encoding='utf-8'):
-                file.write_text("\n".join(all_hosts))
+    all_hosts = asyncio.run(main(
+        domain = "instagram.com",
+        searchers = ['_all_'],
+        max_results = 500
+    ))
+    for h in all_hosts:
+        print(h)
