@@ -22,7 +22,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/omarashraf0/DorkMiner.git
+git clone https://github.com/omr-cy/DorkMiner.git
 cd DorkMiner
 
 # Install in editable mode (recommended for development)
@@ -120,11 +120,13 @@ asyncio.run(run_dorkminer())
 ---
 
 ## 🧾 License
+
 Copyright © 2025 **Omar Ashraf (omr)**  
 Released under the MIT License.
 
 ---
 ---
+
 
 # النسخة العربية 
 
@@ -152,7 +154,7 @@ Released under the MIT License.
 
 ```bash
 # استنساخ المستودع
-git clone https://github.com/omarashraf0/DorkMiner.git
+git clone https://github.com/omr-cy/DorkMiner.git
 cd DorkMiner
 
 # التثبيت في وضع التطوير (مستحسن أثناء التطوير)
