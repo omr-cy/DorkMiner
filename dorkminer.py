@@ -292,18 +292,18 @@ def cli():
         silent=args.silent,
     ))
 
-# if __name__ == "__main__":
-#     cli()
+if __name__ == "__main__":
+    cli()
 
 
 # ----------------- [ TEST ] -----------------
 
-if __name__ == "__main__":
-    asyncio.run(main(
-        domain = "instagram.com",
-        searchers = ['_all_'],
-        max_results = 500,
-        # view=True,
-        # browser="firefox",
-    ))
+# if __name__ == "__main__":
+#     asyncio.run(main(
+#         domain = "instagram.com",
+#         searchers = ['_all_'],
+#         max_results = 500,
+#         # view=True,
+#         # browser="firefox",
+#     ))
 
