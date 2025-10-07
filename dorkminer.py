@@ -276,9 +276,9 @@ def parse_cli_args():
     parser.add_argument("-s", "--searchers", required=False, default="duck,yahoo", help="Searchers (duck,yahoo,naver) or  all")
     parser.add_argument("-m", "--max",       required=False, default=500,          help="Max results (int)")
     parser.add_argument("-o", "--outfile",   required=False, default=None,         help="Output file path (optional)")
-    parser.add_argument("-b", "--browser",   required=False, default="chromium",   help="Browser to use (chromium|firefox)")
-    parser.add_argument("-v", "--view",      required=False, default=False,        help="View Browser Proces",   action="store_true")
-    parser.add_argument("-sl","--silent",    required=False, default=False,        help="No Banner or Messages", action="store_true",)
+    parser.add_argument("-b", "--browser",   required=False, default="chromium",   help="Browser to use (chromium | firefox)")
+    parser.add_argument("-v", "--view",      required=False, default=False,        help="Show Browser UI",   action="store_true")
+    parser.add_argument("-sl","--silent",    required=False, default=False,        help="Disable Banner / Messages", action="store_true",)
     return parser.parse_args()
 
 def cli():

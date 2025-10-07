@@ -1,25 +1,47 @@
 
-# DorkMiner
-
-**DorkMiner** — a Python tool that extracts hostnames/domains using search-engine “dorks” (DuckDuckGo, Yahoo, Naver, ...).  
-This README contains installation & usage instructions for CLI and as an importable module.
-
-**DorkMiner**:
-اداة بلغة بايثون، لأستخراج النطاقات (الدومينز - domains) من محركات البحث المختلفة، عن طريق تقنية الـ Dorking
+**DorkMiner** is an automated subdomain discovery tool that uses *search engine dorking* across multiple engines (DuckDuckGo, Yahoo, Naver, etc.) to enumerate subdomains related to a given domain.
 
 ---
 
-## English
-
-### Requirements
-- Python 3.12+ (tested with 3.12)  
-- `pip`  
-- `playwright`, `beautifulsoup4`, `lxml` (see `requirements.txt`)
+## 🚀 Features
+- Supports multiple search engines:
+  - DuckDuckGo 
+  - Yahoo
+  - Yahoo Japan 🇯🇵
+  - Yandex (Yendix) 🇷🇺
+  - Dmenu-GOO 
+  - Naver 🇰🇷
+- Extracts and deduplicates subdomains from search results.
+- Async & fast (uses Playwright + asyncio).
+- CLI and Python module usage.
+- Works with Chromium or Firefox.
 
 ---
 
-### Quick install (recommended: virtual environment)
+## ⚙️ Installation
+
 ```bash
+# Clone the repository
+git clone https://github.com/omarashraf0/DorkMiner.git
+cd DorkMiner
+
+# Install in editable mode (recommended for development)
+pip install -e .
+
+# Install Playwright browsers (required)
+playwright install chromium
+playwright install firefox
+```
+
+Or
+
+virtual environment
+
+```bash
+# Clone the repository
+git clone https://github.com/omarashraf0/DorkMiner.git
+cd DorkMiner
+
 # create & activate venv
 python -m venv .venv
 source .venv/bin/activate      # Linux / macOS
@@ -30,167 +52,198 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 
 # download Playwright browsers
-python -m playwright install
+python3.12 -m playwright install
 ```
 
----
 
-### CLI usage
-Basic call:
-```bash
-python dorkminer.py -d example.com -s duck,yahoo -m 200
-```
 
-Options:
-- `-d / --domain` : target domain (required)  
+> **Note:** Make sure you have:
 
-- `-s / --searchers` : comma-separated searchers (`duck`, `yahoo`, `naver`, ...). Example: `duck,yahoo`  
-
-- `-m / --max` : max results per search (default `500`)  
-
-- `-o / --outfile` : output file (default prints to stdout and asks to save)
-
-- `-b / --browser` : Browser type (default 'chromium')
-
-- `-v / --view` : View Browser Proces (default 'False')
-
-Save results directly:
-```bash
-python dorkminer.py -d example.com -s duck,yahoo -m 500 -o ./results.txt
-```
-
-Use all Search Engines:
-```bash
-python dorkminer.py -d example.com -s all
-```
----
-
-### Use as a Python module
-
-```python
-import asyncio
-from dorkminer import main  # if dorkminer.py is in your PYTHONPATH
-
-async def run():
-    hosts = await main(
-        domain="example.com",
-        searchers=['_duck_', '_yahoo_'],
-        max_results=200,
-        browser='chromium'  # or 'firefox'
-    )
-    print(hosts)
-
-asyncio.run(run())
-```
-
-Notes:
-- `main(...)` returns a sorted list of hosts.
-- When calling programmatically use searcher tokens like `"_duck_"`, `"_yahoo_"`, or `"_all_"`. The CLI converts `duck,yahoo` → 
+- Python 3.12+ and pip available. 
+ 
+- Installing Playwright browsers is required for the tool to run headless or visible browsers.
 
 ---
 
-### Disclaimer
-This tool is provided **for educational and legitimate OSINT purposes only**. Do **not** use it to access systems or data without authorization. The author and contributors are **not responsible** for misuse.
+## Usage (CLI)
 
----
-
-### Contributing & License
-- Open to PRs and issues. Please open an issue before large changes.  
-- License: MIT (read the `LICENSES`).
-
-
----
----
-
-
-## العربية (Arabic)
-
-### المتطلبات
-- بايثون 3.12 أو أحدث  (مجرب بـ3.12)
-- `pip`  
-- الحزم: `playwright`, `beautifulsoup4`, `lxml` (راجع `requirements.txt`)
-
----
-
-### تثبيت سريع (مستحسن: virtualenv - بيئة معزولة)
-```bash
-# إنشاء وتفعيل البيئة الافتراضية
-python -m venv .venv
-source .venv/bin/activate      # على لينكس / ماك
-# .venv\Scripts\activate       # على ويندوز
-
-# تحديث pip وتثبيت المتطلبات
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-
-# تحميل المتصفحات
-python -m playwright install
-```
-
----
-
-### التشغيل من سطر الأوامر (CLI)
-مثال أساسي:
-```bash
-python dorkminer.py -d example.com -s duck,yahoo -m 200
-```
-
-خيارات العمل:
-- `-d / --domain` : النطاق الهدف (مطلوب)  
-
-- `-s / --searchers` : محركات البحث مفصولة بفاصلة (`duck`, `yahoo`, `naver`, ...). مثال: `duck,yahoo`  
-
-- `-m / --max` : الحد الأقصى للنتائج (افتراضي 500)  
-
-- `-o / --outfile` : ملف الإخراج (افتراضي يطبع ثم يسألك حفظ)
-
-- `-b / --browser` : لأختيار المتصفح (إفتراضي 'chromium')
-
-- `-v / --view` : مطالعة عمليات المتصفح (الإفتراضي 'False - موقوف')
+### Basic Usage
 
 ```bash
-python dorkminer.py -d example.com -s duck,yahoo -m 500 -o ./results.txt
+dorkminer -d example.com
+
+python3.12 -m dorkminer -d example.com
+
+python3.12 dorkminer.py -d example.com
 ```
 
-استعمال كل المحركات البحثية:
+### Options
+| Flag              | Description                                                 | Default                           |
+| ----------------- | ----------------------------------------------------------- | --------------------------------- |
+| `-d, --domain`    | Target domain                                               | *Required*                        |
+| `-s, --searchers` | Comma-separated search engines (e.g. `duck,yahoo`) or `all` | `duck,yahoo`                      |
+| `-m, --max`       | Max number of results per engine                            | `500`                             |
+| `-o, --outfile`   | Output file path                                            | Prints to stdout and asks to save |
+| `-b, --browser`   | Browser type (`chromium` or `firefox`)                      | `chromium`                        |
+| `-v, --view`      | Show browser UI                                             | `False`                           |
+| `-sl, --silent`   | Disable banner/messages                                     | `False`                           |
+
+### Advanced Usage
+
 ```bash
-python dorkminer.py -d example.com -s all
+dorkminer -d example.com -s all -m 100 -o results.txt
 ```
 
 ---
 
-### استخدام كـمكتبة في بايثون
+## Usage as a Python Module
+
 
 ```python
 import asyncio
 from dorkminer import main
 
-async def run():
-    hosts = await main(
+async def run_dorkminer():
+    results = await main(
         domain="example.com",
-        searchers=['_duck_', '_yahoo_'],
-        max_results=200,
-        browser='chromium'  # أو 'firefox'
+        searchers=["duck", "yahoo"],
+        max_results=300,
+        browser="chromium",
+        view=False,
+        silent=True
     )
-    print(hosts)
+    print(results)
 
-asyncio.run(run())
+asyncio.run(run_dorkminer())
 ```
 
-ملاحظات:
-- الدالة `main(...)` تُرجع قائمة مرتبة من النطاقات.  
-- في الاستدعاء البرمجي استخدم رموز `searchers` مثل `"_duck_"` أو `"_all_"`. واجهة CLI تحول المدخلات تلقائيًا.
+---
+
+## 🧾 License
+Copyright © 2025 **Omar Ashraf (omr)**  
+Released under the MIT License.
+
+---
+---
+
+# النسخة العربية 
+
+
+**DorkMiner** أداة آلية لاكتشاف النطاقات الفرعية (subdomains) تعتمد على استخدام *dorks* في محركات البحث المتنوعة (DuckDuckGo، Yahoo، Naver، وغيرها) لجمع النطاقات الفرعية المتعلقة بنطاق مستهدف.
 
 ---
 
-### إخلاء المسؤولية
-الأداة مخصصة لأغراض اخلاقية ومشاريع OSINT المشروعة فقط. لا تستخدمها للوصول غير المصرح به أو لأي نشاط مخالف للقانون او غير شرعي. المؤلف غير مسؤول عن أي استخدام ضار.
+## 🚀 الميزات
+- تدعم عدة محركات بحث:
+  - DuckDuckGo
+  - Yahoo
+  - Yahoo Japan 🇯🇵
+  - Yandex (Yendix) 🇷🇺
+  - Dmenu-GOO
+  - Naver 🇰🇷
+- استخراج وإزالة التكرار من النطاقات الفرعية المستخرجة.
+- غير متزامنة وسريعة (باستخدام Playwright + asyncio).
+- استخدام كأداة سطر أوامر (CLI) أو كموديول بايثون.
+- تعمل مع Chromium و Firefox.
 
 ---
 
-### المساهمة والترخيص
-- المساهمات مرحب بها: افتح Issue قبل تغييرات كبيرة.  
-- الترخيص: MIT (اقرأ ملف الـ`LICENSE`).
+## ⚙️ التثبيت
+
+```bash
+# استنساخ المستودع
+git clone https://github.com/omarashraf0/DorkMiner.git
+cd DorkMiner
+
+# التثبيت في وضع التطوير (مستحسن أثناء التطوير)
+pip install -e .
+
+# تثبيت متصفحات Playwright المطلوبة
+playwright install chromium
+playwright install firefox
+```
+
+أو باستخدام بيئة افتراضية:
+
+```bash
+# استنساخ المستودع
+git clone https://github.com/omarashraf0/DorkMiner.git
+cd DorkMiner
+
+# إنشاء وتفعيل venv
+python -m venv .venv
+source .venv/bin/activate      # Linux / macOS
+# .venv\Scriptsctivate       # Windows (PowerShell/CMD)
+
+# تحديث pip وتثبيت المتطلبات
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+
+# تنزيل متصفحات Playwright
+python3.12 -m playwright install
+```
+
+> **ملاحظة:** تأكد من:
+> - وجود Python 3.12 أو أعلى و pip.
+> - تثبيت متصفحات Playwright ضروري لتشغيل الأداة في وضع headless أو ظاهر.
 
 ---
 
+## الاستخدام (CLI)
+
+### الاستخدام الأساسي
+
+```bash
+dorkminer dorkminer -d example.com
+
+python3.12 -m dorkminer -d example.com
+```
+
+### الخيارات
+| الوسيط | الوصف | الافتراضي |
+| ------ | ----- | --------- |
+| `-d, --domain` | النطاق الهدف | *مطلوب* |
+| `-s, --searchers` | محركات البحث مفصولة بفواصل (مثال: `duck,yahoo`) أو `all` | `duck,yahoo` |
+| `-m, --max` | الحد الأقصى لنتائج كل محرك | `500` |
+| `-o, --outfile` | مسار ملف الإخراج | يطبع على stdout ويسألك للحفظ |
+| `-b, --browser` | نوع المتصفح (`chromium` أو `firefox`) | `chromium` |
+| `-v, --view` | عرض واجهة المتصفح | `False` |
+| `-sl, --silent` | إخفاء البنر والرسائل | `False` |
+
+### الاستخدام المتقدم
+
+```bash
+dorkminer -d example.com -s all -m 100 -o results.txt
+```
+
+---
+
+## الاستخدام كمكتبة بايثون
+
+
+```python
+import asyncio
+from dorkminer import main
+
+async def run_dorkminer():
+    results = await main(
+        domain="example.com",
+        searchers=["duck", "yahoo"],
+        max_results=300,
+        browser="chromium",
+        view=False,
+        silent=True
+    )
+    print(results)
+
+asyncio.run(run_dorkminer())
+```
+
+---
+
+## 🧾 الترخيص
+
+حقوق النسخ © 2025 **Omar Ashraf (omr)**  
+مرخّصة بموجب رخصة MIT.
+
+---
