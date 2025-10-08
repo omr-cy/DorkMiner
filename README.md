@@ -67,7 +67,6 @@ python3.12 -m playwright install
 
 ## Usage (CLI)
 
-### Basic Usage
 
 ```bash
 dorkminer -d example.com
@@ -175,7 +174,7 @@ cd DorkMiner
 # إنشاء وتفعيل venv
 python -m venv .venv
 source .venv/bin/activate      # Linux / macOS
-# .venv\Scriptsctivate       # Windows (PowerShell/CMD)
+# .venv\Scripts\activate       # Windows (PowerShell/CMD)
 
 # تحديث pip وتثبيت المتطلبات
 python -m pip install --upgrade pip
@@ -191,9 +190,8 @@ python3.12 -m playwright install
 
 ---
 
-## الاستخدام (CLI)
+## الإستخدام عن طريق سطر الأوامر (CLI)
 
-### الاستخدام الأساسي
 
 ```bash
 dorkminer -d example.com
