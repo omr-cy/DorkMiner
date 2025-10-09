@@ -253,7 +253,7 @@ async def main(
     # Save Output Hosts in File
     if outfile:
         outfile = Path(outfile)
-        if outfile.suffix == "txt":
+        if outfile.suffix == ".txt":
             with outfile.open("w", encoding='utf-8'):
                 outfile.write_text("\n".join(all_hosts))
 
