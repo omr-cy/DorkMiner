@@ -39,7 +39,7 @@ virtual environment
 
 ```bash
 # Clone the repository
-git clone https://github.com/omarashraf0/DorkMiner.git
+git clone https://github.com/omr-cy/DorkMiner.git
 cd DorkMiner
 
 # create & activate venv
@@ -168,7 +168,7 @@ playwright install firefox
 
 ```bash
 # استنساخ المستودع
-git clone https://github.com/omarashraf0/DorkMiner.git
+git clone https://github.com/omr-cy/DorkMiner.git
 cd DorkMiner
 
 # إنشاء وتفعيل venv
